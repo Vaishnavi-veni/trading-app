@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:trading_app/features/market/data/datasources/stock_data.dart';
+
+import '../data/datasources/stock_data.dart';
+import '../widgets/stock_price_tile.dart';
 
 class MarketScreen extends StatelessWidget {
   const MarketScreen({super.key});
@@ -14,17 +16,7 @@ class MarketScreen extends StatelessWidget {
         itemBuilder: (context, index) {
           final stock = StockData.stocks[index];
 
-          return ListTile(
-            title: Text(
-              stock.symbol,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(stock.name),
-            trailing: Text(
-              '₹${(stock.initialPricePaise / 100).toStringAsFixed(2)}',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          );
+          return StockPriceTile(key: ValueKey(stock.symbol), stock: stock);
         },
       ),
     );

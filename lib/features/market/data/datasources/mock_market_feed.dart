@@ -1,0 +1,78 @@
+import 'dart:async';
+import 'dart:math';
+
+import '../models/market_tick.dart';
+import 'stock_data.dart';
+
+class MockMarketFeed {
+  MockMarketFeed({this.tickInterval = const Duration(milliseconds: 500)});
+
+  final Duration tickInterval;
+
+  final Random _random = Random();
+
+  final Map<String, int> _prices = {
+    for (final stock in StockData.stocks) stock.symbol: stock.initialPricePaise,
+  };
+
+  final StreamController<MarketTick> _controller =
+      StreamController<MarketTick>.broadcast();
+
+  Timer? _timer;
+
+  Stream<MarketTick> get ticks => _controller.stream;
+
+  void start() {
+    if (_timer != null) {
+      return;
+    }
+
+    _timer = Timer.periodic(tickInterval, (_) {
+      _emitTick();
+    });
+  }
+
+  void _emitTick() {
+    final stock = StockData.stocks[_random.nextInt(StockData.stocks.length)];
+
+    final previousPrice = _prices[stock.symbol]!;
+
+    // Random movement between -0.10% and +0.10%.
+    final movementPercent = (_random.nextDouble() * 0.2) - 0.1;
+
+    var newPrice = (previousPrice * (1 + movementPercent / 100)).round();
+
+    // Price can never become zero or negative.
+    newPrice = max(1, newPrice);
+
+    // Don't emit a useless tick if the rounded value hasn't changed.
+    if (newPrice == previousPrice) {
+      return;
+    }
+
+    _prices[stock.symbol] = newPrice;
+
+    _controller.add(
+      MarketTick(
+        symbol: stock.symbol,
+        pricePaise: newPrice,
+        previousPricePaise: previousPrice,
+      ),
+    );
+  }
+
+  int getPrice(String symbol) {
+    return _prices[symbol] ?? 0;
+  }
+
+  Map<String, int> get currentPrices {
+    return Map.unmodifiable(_prices);
+  }
+
+  Future<void> dispose() async {
+    _timer?.cancel();
+    _timer = null;
+
+    await _controller.close();
+  }
+}
