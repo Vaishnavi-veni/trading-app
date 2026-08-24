@@ -5,6 +5,8 @@ import 'holdings_event.dart';
 
 enum HoldingsStatus { initial, loading, loaded, failure }
 
+enum HoldingsSort { pnl, symbol, currentValue }
+
 class HoldingsState extends Equatable {
   final HoldingsStatus status;
   final List<Holding> holdings;

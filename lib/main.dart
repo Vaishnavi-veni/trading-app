@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trading_app/features/holdings/bloc/holdings_bloc.dart';
 import 'package:trading_app/features/holdings/bloc/holdings_event.dart';
+import 'package:trading_app/features/trading/data/datasources/trading_local_datasource.dart';
 
 import 'features/market/bloc/market_bloc.dart';
 import 'features/market/bloc/market_event.dart';
@@ -20,10 +22,10 @@ import 'home_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Create the trading repository.
-  final tradingRepository = TradingRepository();
+  final tradingRepository = TradingRepository(
+    localDataSource: TradingLocalDataSource(),
+  );
 
-  // Restore wallet, holdings and orders.
   await tradingRepository.load();
 
   runApp(TradingApp(tradingRepository: tradingRepository));

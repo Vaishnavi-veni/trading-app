@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trading_app/features/trading/bloc/order_bloc.dart';
 import 'package:trading_app/features/trading/bloc/order_event.dart';
 import 'package:trading_app/features/trading/bloc/order_state.dart';
+import 'package:trading_app/features/trading/screens/order_confirmation_screen.dart';
 
 import '../../market/bloc/market_bloc.dart';
 import '../../market/bloc/market_state.dart';
@@ -71,7 +72,11 @@ class _OrderTicketScreenState extends State<OrderTicketScreen> {
               return;
             }
 
-            Navigator.of(context).pop();
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => OrderConfirmationScreen(order: order),
+              ),
+            );
           }
         },
         child: BlocSelector<MarketBloc, MarketState, MarketPrice?>(

@@ -1,16 +1,11 @@
-import 'dart:convert';
-
-import 'package:shared_preferences/shared_preferences.dart';
-
+import '../datasources/trading_local_datasource.dart';
 import '../models/holding.dart';
 import '../models/order.dart';
 import '../models/order_side.dart';
 import '../models/wallet.dart';
 
 class TradingRepository {
-  static const _walletKey = 'trading_wallet';
-  static const _holdingsKey = 'trading_holdings';
-  static const _ordersKey = 'trading_orders';
+  final TradingLocalDataSource localDataSource;
 
   Wallet _wallet = const Wallet(
     balancePaise: 10000000, // ₹1,00,000
@@ -20,7 +15,7 @@ class TradingRepository {
 
   final List<Order> _orders = [];
 
-  SharedPreferences? _preferences;
+  TradingRepository({required this.localDataSource});
 
   Wallet get wallet => _wallet;
 
@@ -28,46 +23,35 @@ class TradingRepository {
 
   List<Order> get orders => List.unmodifiable(_orders);
 
+  // ============================================================
+  // LOAD PERSISTED DATA
+  // ============================================================
+
   Future<void> load() async {
-    _preferences = await SharedPreferences.getInstance();
+    final savedWallet = await localDataSource.loadWallet();
 
-    final walletJson = _preferences!.getString(_walletKey);
-
-    print('WALLET SAVED DATA: $walletJson');
-
-    if (walletJson != null) {
-      final decoded = jsonDecode(walletJson) as Map<String, dynamic>;
-
-      _wallet = Wallet.fromJson(decoded);
+    if (savedWallet != null) {
+      _wallet = savedWallet;
     }
 
-    print('WALLET AFTER LOAD: ${_wallet.balancePaise}');
-    final holdingsJson = _preferences!.getString(_holdingsKey);
+    final savedHoldings = await localDataSource.loadHoldings();
 
-    if (holdingsJson != null) {
-      final decoded = jsonDecode(holdingsJson) as List<dynamic>;
+    _holdings
+      ..clear()
+      ..addEntries(
+        savedHoldings.map((holding) => MapEntry(holding.symbol, holding)),
+      );
 
-      _holdings.clear();
+    final savedOrders = await localDataSource.loadOrders();
 
-      for (final item in decoded) {
-        final holding = Holding.fromJson(item as Map<String, dynamic>);
-
-        _holdings[holding.symbol] = holding;
-      }
-    }
-
-    final ordersJson = _preferences!.getString(_ordersKey);
-
-    if (ordersJson != null) {
-      final decoded = jsonDecode(ordersJson) as List<dynamic>;
-
-      _orders.clear();
-
-      for (final item in decoded) {
-        _orders.add(Order.fromJson(item as Map<String, dynamic>));
-      }
-    }
+    _orders
+      ..clear()
+      ..addAll(savedOrders);
   }
+
+  // ============================================================
+  // BUY / SELL VALIDATION
+  // ============================================================
 
   bool canBuy(int orderValuePaise) {
     return orderValuePaise <= _wallet.balancePaise;
@@ -82,6 +66,10 @@ class TradingRepository {
 
     return holding.quantity >= quantity;
   }
+
+  // ============================================================
+  // EXECUTE ORDER
+  // ============================================================
 
   Future<Order> executeOrder({
     required String symbol,
@@ -132,10 +120,15 @@ class TradingRepository {
 
     _orders.add(order);
 
-    await _save();
+    // Persist everything after successful transaction.
+    await _persist();
 
     return order;
   }
+
+  // ============================================================
+  // BUY
+  // ============================================================
 
   void _executeBuy({
     required String symbol,
@@ -150,7 +143,6 @@ class TradingRepository {
 
     final existing = _holdings[symbol];
 
-    // First purchase
     if (existing == null) {
       _holdings[symbol] = Holding(
         symbol: symbol,
@@ -175,6 +167,10 @@ class TradingRepository {
     );
   }
 
+  // ============================================================
+  // SELL
+  // ============================================================
+
   void _executeSell({required String symbol, required int quantity}) {
     final existing = _holdings[symbol];
 
@@ -191,28 +187,15 @@ class TradingRepository {
     }
   }
 
-  Future<void> _save() async {
-    final preferences = _preferences;
+  // ============================================================
+  // PERSIST EVERYTHING
+  // ============================================================
 
-    if (preferences == null) {
-      throw StateError(
-        'TradingRepository has not been initialized. '
-        'Call load() before trading.',
-      );
-    }
+  Future<void> _persist() async {
+    await localDataSource.saveWallet(_wallet);
 
-    await preferences.setString(_walletKey, jsonEncode(_wallet.toJson()));
+    await localDataSource.saveHoldings(_holdings.values.toList());
 
-    await preferences.setString(
-      _holdingsKey,
-      jsonEncode(_holdings.values.map((holding) => holding.toJson()).toList()),
-    );
-
-    await preferences.setString(
-      _ordersKey,
-      jsonEncode(_orders.map((order) => order.toJson()).toList()),
-    );
-
-    print('WALLET SAVED: ${_wallet.balancePaise}');
+    await localDataSource.saveOrders(_orders);
   }
 }

@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 
-enum HoldingsSort { pnl, symbol, currentValue }
+import 'holdings_state.dart';
 
-sealed class HoldingsEvent extends Equatable {
+abstract class HoldingsEvent extends Equatable {
   const HoldingsEvent();
 
   @override
