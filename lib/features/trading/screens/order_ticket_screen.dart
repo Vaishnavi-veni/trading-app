@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trading_app/features/trading/bloc/order_bloc.dart';
+import 'package:trading_app/features/trading/bloc/order_event.dart';
+import 'package:trading_app/features/trading/bloc/order_state.dart';
 
 import '../../market/bloc/market_bloc.dart';
 import '../../market/bloc/market_state.dart';
@@ -26,6 +29,24 @@ class _OrderTicketScreenState extends State<OrderTicketScreen> {
     super.dispose();
   }
 
+  String? _validateQuantity(String value) {
+    if (value.trim().isEmpty) {
+      return 'Quantity is required';
+    }
+
+    final quantity = int.tryParse(value);
+
+    if (quantity == null) {
+      return 'Enter a whole number';
+    }
+
+    if (quantity <= 0) {
+      return 'Quantity must be greater than zero';
+    }
+
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final stock = StockData.stocks.firstWhere(
@@ -34,113 +55,124 @@ class _OrderTicketScreenState extends State<OrderTicketScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text('${stock.symbol} Order')),
-      body: BlocSelector<MarketBloc, MarketState, MarketPrice?>(
-        selector: (state) => state.prices[widget.symbol],
-        builder: (context, marketPrice) {
-          final ltpPaise = marketPrice?.pricePaise ?? stock.initialPricePaise;
+      body: BlocListener<OrderBloc, OrderState>(
+        listener: (context, state) {
+          if (state.status == OrderStatus.failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.errorMessage ?? 'Order failed.')),
+            );
+          }
 
-          final quantity = int.tryParse(_quantityController.text) ?? 0;
+          if (state.status == OrderStatus.success) {
+            final order = state.lastOrder;
 
-          final orderValuePaise = quantity * ltpPaise;
+            if (order == null) {
+              return;
+            }
 
-          return ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              Text(
-                stock.symbol,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(stock.name),
-
-              const SizedBox(height: 24),
-
-              _PriceCard(ltpPaise: ltpPaise),
-
-              const SizedBox(height: 24),
-
-              SegmentedButton<OrderSide>(
-                segments: const [
-                  ButtonSegment(
-                    value: OrderSide.buy,
-                    label: Text('Buy'),
-                    icon: Icon(Icons.trending_up),
-                  ),
-                  ButtonSegment(
-                    value: OrderSide.sell,
-                    label: Text('Sell'),
-                    icon: Icon(Icons.trending_down),
-                  ),
-                ],
-                selected: {_side},
-                onSelectionChanged: (selection) {
-                  setState(() {
-                    _side = selection.first;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 24),
-
-              TextField(
-                controller: _quantityController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Quantity',
-                  hintText: 'Enter quantity',
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: (_) {
-                  setState(() {});
-                },
-              ),
-
-              const SizedBox(height: 24),
-
-              _OrderSummary(
-                quantity: quantity,
-                ltpPaise: ltpPaise,
-                orderValuePaise: orderValuePaise,
-              ),
-
-              const SizedBox(height: 32),
-
-              SizedBox(
-                height: 52,
-                child: FilledButton(
-                  onPressed: quantity > 0
-                      ? () {
-                          _submitOrder(context, stock.symbol, quantity);
-                        }
-                      : null,
-                  child: Text(
-                    _side == OrderSide.buy
-                        ? 'Buy ${stock.symbol}'
-                        : 'Sell ${stock.symbol}',
-                  ),
-                ),
-              ),
-            ],
-          );
+            Navigator.of(context).pop();
+          }
         },
+        child: BlocSelector<MarketBloc, MarketState, MarketPrice?>(
+          selector: (state) => state.prices[widget.symbol],
+          builder: (context, marketPrice) {
+            final ltpPaise = marketPrice?.pricePaise ?? stock.initialPricePaise;
+
+            final quantity = int.tryParse(_quantityController.text) ?? 0;
+
+            final orderValuePaise = quantity * ltpPaise;
+
+            return ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                Text(
+                  stock.symbol,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(stock.name),
+
+                const SizedBox(height: 24),
+
+                _PriceCard(ltpPaise: ltpPaise),
+
+                const SizedBox(height: 24),
+
+                SegmentedButton<OrderSide>(
+                  segments: const [
+                    ButtonSegment(
+                      value: OrderSide.buy,
+                      label: Text('Buy'),
+                      icon: Icon(Icons.trending_up),
+                    ),
+                    ButtonSegment(
+                      value: OrderSide.sell,
+                      label: Text('Sell'),
+                      icon: Icon(Icons.trending_down),
+                    ),
+                  ],
+                  selected: {_side},
+                  onSelectionChanged: (selection) {
+                    setState(() {
+                      _side = selection.first;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 24),
+
+                TextField(
+                  controller: _quantityController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Quantity',
+                    hintText: 'Enter quantity',
+                    border: const OutlineInputBorder(),
+                    errorText: _validateQuantity(_quantityController.text),
+                  ),
+                  onChanged: (_) {
+                    setState(() {});
+                  },
+                ),
+
+                const SizedBox(height: 24),
+
+                _OrderSummary(
+                  quantity: quantity,
+                  ltpPaise: ltpPaise,
+                  orderValuePaise: orderValuePaise,
+                ),
+
+                const SizedBox(height: 32),
+
+                SizedBox(
+                  height: 52,
+                  child: FilledButton(
+                    onPressed: quantity > 0
+                        ? () {
+                            _submitOrder(context, stock.symbol, quantity);
+                          }
+                        : null,
+                    child: Text(
+                      _side == OrderSide.buy
+                          ? 'Buy ${stock.symbol}'
+                          : 'Sell ${stock.symbol}',
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
   void _submitOrder(BuildContext context, String symbol, int quantity) {
-    // OrderBloc will be added next.
-    //
-    // For now this confirms that the ticket
-    // has the correct stock and quantity.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${_side.name.toUpperCase()} '
-          '$quantity $symbol',
-        ),
-      ),
+    context.read<OrderBloc>().add(
+      SubmitOrder(symbol: symbol, side: _side, quantity: quantity),
     );
   }
 }
@@ -190,6 +222,7 @@ class _OrderSummary extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            _AvailableBalance(),
             _SummaryRow(label: 'Quantity', value: quantity.toString()),
             const SizedBox(height: 12),
             _SummaryRow(
@@ -233,6 +266,27 @@ class _SummaryRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AvailableBalance extends StatelessWidget {
+  const _AvailableBalance();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<OrderBloc, OrderState, int>(
+      selector: (state) => state.wallet.balancePaise,
+      builder: (context, balancePaise) {
+        return ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Available Balance'),
+          trailing: Text(
+            '₹${(balancePaise / 100).toStringAsFixed(2)}',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+        );
+      },
     );
   }
 }
