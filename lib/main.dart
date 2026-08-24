@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trading_app/features/holdings/bloc/holdings_bloc.dart';
 import 'package:trading_app/features/holdings/bloc/holdings_event.dart';
@@ -28,7 +29,16 @@ Future<void> main() async {
 
   await tradingRepository.load();
 
-  runApp(TradingApp(tradingRepository: tradingRepository));
+  runApp(
+    ScreenUtilInit(
+      designSize: const Size(375, 812),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (_, child) {
+        return TradingApp(tradingRepository: tradingRepository);
+      },
+    ),
+  );
 }
 
 class TradingApp extends StatelessWidget {

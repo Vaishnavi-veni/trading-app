@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../data/datasources/stock_data.dart';
 import '../widgets/stock_price_tile.dart';
@@ -48,11 +49,11 @@ class _MarketScreenState extends State<MarketScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0B0F14),
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Market',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 24,
+            fontSize: 24.sp,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -68,11 +69,11 @@ class _MarketScreenState extends State<MarketScreen> {
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
           children: [
             // Search
             Container(
-              height: 48,
+              height: 48.h,
               decoration: BoxDecoration(
                 color: const Color(0xFF151B23),
                 borderRadius: BorderRadius.circular(14),
@@ -80,7 +81,7 @@ class _MarketScreenState extends State<MarketScreen> {
               ),
               child: TextField(
                 controller: _searchController,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(color: Colors.white, fontSize: 14.sp),
                 cursorColor: const Color(0xFF4ADE80),
                 decoration: InputDecoration(
                   hintText: 'Search stocks',
@@ -99,42 +100,39 @@ class _MarketScreenState extends State<MarketScreen> {
                         )
                       : null,
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 14.h,
                   ),
                 ),
               ),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Stocks',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 Text(
                   '${stocks.length} stocks',
-                  style: const TextStyle(
-                    color: Color(0xFF7D8794),
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: Color(0xFF7D8794), fontSize: 13.sp),
                 ),
               ],
             ),
 
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
 
             if (stocks.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 48),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 48.h),
                 child: Column(
                   children: [
                     Icon(
@@ -142,19 +140,22 @@ class _MarketScreenState extends State<MarketScreen> {
                       size: 44,
                       color: Color(0xFF5E6875),
                     ),
-                    SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     Text(
                       'No stocks found',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Text(
                       'Try searching with another name or symbol',
-                      style: TextStyle(color: Color(0xFF7D8794), fontSize: 13),
+                      style: TextStyle(
+                        color: Color(0xFF7D8794),
+                        fontSize: 13.sp,
+                      ),
                     ),
                   ],
                 ),
@@ -162,7 +163,7 @@ class _MarketScreenState extends State<MarketScreen> {
             else
               ...stocks.map(
                 (stock) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: EdgeInsets.only(bottom: 10.h),
                   child: StockPriceTile(
                     key: ValueKey(stock.symbol),
                     stock: stock,

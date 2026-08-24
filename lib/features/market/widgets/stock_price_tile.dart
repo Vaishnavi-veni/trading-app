@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trading_app/features/market/data/models/stock_model.dart';
 
 import '../bloc/market_bloc.dart';
@@ -42,10 +43,10 @@ class StockPriceTile extends StatelessWidget {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
           decoration: BoxDecoration(
             color: const Color(0xFF151B23),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(color: tickColor.withValues(alpha: 0.18)),
             boxShadow: [
               BoxShadow(
@@ -59,16 +60,16 @@ class StockPriceTile extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: onTap,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16.r),
               child: Row(
                 children: [
                   // Stock avatar
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 44.w,
+                    height: 44.h,
                     decoration: BoxDecoration(
                       color: const Color(0xFF202832),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                     alignment: Alignment.center,
                     child: Text(
@@ -76,15 +77,15 @@ class StockPriceTile extends StatelessWidget {
                         0,
                         stock.symbol.length > 2 ? 2 : stock.symbol.length,
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 13,
+                        fontSize: 13.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
 
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
 
                   // Stock information
                   Expanded(
@@ -95,20 +96,20 @@ class StockPriceTile extends StatelessWidget {
                           stock.symbol,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 15,
+                            fontSize: 15.sp,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4.h),
                         Text(
                           stock.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Color(0xFF7D8794),
-                            fontSize: 12,
+                            fontSize: 12.sp,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -116,7 +117,7 @@ class StockPriceTile extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
 
                   // Price + change
                   Column(
@@ -124,23 +125,23 @@ class StockPriceTile extends StatelessWidget {
                     children: [
                       Text(
                         '₹${(pricePaise / 100).toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 15,
+                          fontSize: 15.sp,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
 
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6.h),
 
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 4,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 7.w,
+                          vertical: 4.h,
                         ),
                         decoration: BoxDecoration(
                           color: changeColor.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(6.r),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -154,13 +155,13 @@ class StockPriceTile extends StatelessWidget {
                               size: 11,
                               color: changeColor,
                             ),
-                            const SizedBox(width: 2),
+                            SizedBox(width: 2.w),
                             Text(
                               '${changePercent >= 0 ? '+' : ''}'
                               '${changePercent.toStringAsFixed(2)}%',
                               style: TextStyle(
                                 color: changeColor,
-                                fontSize: 11,
+                                fontSize: 11.sp,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
