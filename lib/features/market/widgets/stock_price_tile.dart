@@ -7,8 +7,9 @@ import '../bloc/market_state.dart';
 
 class StockPriceTile extends StatelessWidget {
   final StockModel stock;
+  final VoidCallback? onTap;
 
-  const StockPriceTile({super.key, required this.stock});
+  const StockPriceTile({super.key, required this.stock, this.onTap});
 
   @override
   Widget build(BuildContext context) {
