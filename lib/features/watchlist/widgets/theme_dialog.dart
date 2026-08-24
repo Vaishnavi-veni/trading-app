@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ThemedDialog extends StatelessWidget {
   final String title;
@@ -16,7 +17,7 @@ class ThemedDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: const Color(0xFF151B23),
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
       title: Text(
         title,
         style: const TextStyle(

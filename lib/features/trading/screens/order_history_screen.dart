@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../bloc/order_bloc.dart';
 import '../bloc/order_state.dart';
@@ -9,42 +10,47 @@ import '../data/models/order_side.dart';
 class OrderHistoryScreen extends StatelessWidget {
   const OrderHistoryScreen({super.key});
 
+  static const backgroundColor = Color(0xFF0B0F14);
+  static const cardColor = Color(0xFF151B23);
+  static const borderColor = Color(0xFF202832);
+  static const secondaryTextColor = Color(0xFF7D8794);
+  static const accentColor = Color(0xFF4ADE80);
+  static const sellColor = Color(0xFFF87171);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Order History')),
+      backgroundColor: backgroundColor,
+
+      appBar: AppBar(
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        title: Text(
+          'Order History',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20.sp,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+
       body: BlocSelector<OrderBloc, OrderState, List<Order>>(
         selector: (state) => state.orders,
         builder: (context, orders) {
           if (orders.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.receipt_long_outlined, size: 56),
-                  SizedBox(height: 12),
-                  Text(
-                    'No orders yet',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 4),
-                  Text('Your completed orders will appear here.'),
-                ],
-              ),
-            );
+            return const _EmptyOrders();
           }
 
           final sortedOrders = List<Order>.from(orders)
             ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
           return ListView.separated(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 32.h),
             itemCount: sortedOrders.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, __) => SizedBox(height: 10.h),
             itemBuilder: (context, index) {
-              final order = sortedOrders[index];
-
-              return _OrderCard(order: order);
+              return _OrderCard(order: sortedOrders[index]);
             },
           );
         },
@@ -58,64 +64,160 @@ class _OrderCard extends StatelessWidget {
 
   const _OrderCard({required this.order});
 
+  static const cardColor = Color(0xFF151B23);
+  static const borderColor = Color(0xFF202832);
+  static const secondaryTextColor = Color(0xFF7D8794);
+  static const accentColor = Color(0xFF4ADE80);
+  static const sellColor = Color(0xFFF87171);
+
   @override
   Widget build(BuildContext context) {
     final isBuy = order.side == OrderSide.buy;
+    final actionColor = isBuy ? accentColor : sellColor;
 
     final orderValuePaise = order.quantity * order.pricePaise;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  child: Icon(isBuy ? Icons.trending_up : Icons.trending_down),
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(18.r),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              // Stock icon
+              Container(
+                width: 46.w,
+                height: 46.w,
+                decoration: BoxDecoration(
+                  color: actionColor.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(13.r),
                 ),
+                alignment: Alignment.center,
+                child: Icon(
+                  isBuy
+                      ? Icons.trending_up_rounded
+                      : Icons.trending_down_rounded,
+                  color: actionColor,
+                  size: 22.sp,
+                ),
+              ),
 
-                const SizedBox(width: 12),
+              SizedBox(width: 12.w),
 
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        order.symbol,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+              // Symbol + order type
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.symbol,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
                       ),
-                      const SizedBox(height: 4),
-                      Text(isBuy ? 'BUY' : 'SELL'),
-                    ],
+                    ),
+
+                    SizedBox(height: 5.h),
+
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 7.w,
+                            vertical: 3.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: actionColor.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(6.r),
+                          ),
+                          child: Text(
+                            isBuy ? 'BUY' : 'SELL',
+                            style: TextStyle(
+                              color: actionColor,
+                              fontSize: 9.sp,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(width: 8.w),
+
+                        Text(
+                          _formatDate(order.createdAt),
+                          style: TextStyle(
+                            color: secondaryTextColor,
+                            fontSize: 10.sp,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(width: 8.w),
+
+              // Order value
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '₹${(orderValuePaise / 100).toStringAsFixed(2)}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    'Order value',
+                    style: TextStyle(color: secondaryTextColor, fontSize: 9.sp),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          SizedBox(height: 16.h),
+
+          Divider(height: 1.h, color: borderColor),
+
+          SizedBox(height: 14.h),
+
+          Row(
+            children: [
+              Expanded(
+                child: _Detail(
+                  label: 'Quantity',
+                  value: order.quantity.toString(),
                 ),
+              ),
 
-                Text(
-                  '₹${(orderValuePaise / 100).toStringAsFixed(2)}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-
-            const Divider(height: 24),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _Detail(label: 'Quantity', value: order.quantity.toString()),
-                _Detail(
+              Expanded(
+                child: _Detail(
                   label: 'Price',
                   value: '₹${(order.pricePaise / 100).toStringAsFixed(2)}',
                 ),
-                _Detail(label: 'Time', value: _formatTime(order.createdAt)),
-              ],
-            ),
-          ],
-        ),
+              ),
+
+              Expanded(
+                child: _Detail(
+                  label: 'Time',
+                  value: _formatTime(order.createdAt),
+                  alignEnd: true,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -126,23 +228,103 @@ class _OrderCard extends StatelessWidget {
 
     return '$hour:$minute';
   }
+
+  String _formatDate(DateTime dateTime) {
+    final day = dateTime.day.toString().padLeft(2, '0');
+    final month = dateTime.month.toString().padLeft(2, '0');
+    final year = dateTime.year.toString();
+
+    return '$day/$month/$year';
+  }
 }
 
 class _Detail extends StatelessWidget {
   final String label;
   final String value;
+  final bool alignEnd;
 
-  const _Detail({required this.label, required this.value});
+  const _Detail({
+    required this.label,
+    required this.value,
+    this.alignEnd = false,
+  });
+
+  static const secondaryTextColor = Color(0xFF7D8794);
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: alignEnd
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 3),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: TextStyle(color: secondaryTextColor, fontSize: 10.sp),
+        ),
+
+        SizedBox(height: 4.h),
+
+        Text(
+          value,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
+    );
+  }
+}
+
+class _EmptyOrders extends StatelessWidget {
+  const _EmptyOrders();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(32.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80.w,
+              height: 80.w,
+              decoration: BoxDecoration(
+                color: const Color(0xFF151B23),
+                borderRadius: BorderRadius.circular(24.r),
+              ),
+              child: Icon(
+                Icons.receipt_long_outlined,
+                size: 36.sp,
+                color: const Color(0xFF596573),
+              ),
+            ),
+
+            SizedBox(height: 20.h),
+
+            Text(
+              'No orders yet',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+
+            SizedBox(height: 8.h),
+
+            Text(
+              'Your completed orders will appear here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: const Color(0xFF7D8794), fontSize: 13.sp),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

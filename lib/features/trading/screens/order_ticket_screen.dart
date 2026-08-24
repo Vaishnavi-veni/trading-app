@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:trading_app/features/trading/bloc/order_bloc.dart';
 import 'package:trading_app/features/trading/bloc/order_event.dart';
 import 'package:trading_app/features/trading/bloc/order_state.dart';
 import 'package:trading_app/features/trading/screens/order_confirmation_screen.dart';
+import 'package:trading_app/features/trading/widgets/order_selector.dart';
+import 'package:trading_app/features/trading/widgets/order_summary.dart';
+import 'package:trading_app/features/trading/widgets/price_card.dart';
+import 'package:trading_app/features/trading/widgets/stock_header.dart';
 
 import '../../market/bloc/market_bloc.dart';
 import '../../market/bloc/market_state.dart';
@@ -21,9 +26,18 @@ class OrderTicketScreen extends StatefulWidget {
 }
 
 class _OrderTicketScreenState extends State<OrderTicketScreen> {
+  static const backgroundColor = Color(0xFF0B0F14);
+  static const cardColor = Color(0xFF151B23);
+  static const borderColor = Color(0xFF202832);
+  static const secondaryTextColor = Color(0xFF7D8794);
+  static const accentColor = Color(0xFF4ADE80);
+  static const sellColor = Color(0xFFF87171);
+
   OrderSide _side = OrderSide.buy;
 
   final TextEditingController _quantityController = TextEditingController();
+
+  bool _hasEditedQuantity = false;
 
   @override
   void dispose() {
@@ -55,8 +69,24 @@ class _OrderTicketScreenState extends State<OrderTicketScreen> {
       (stock) => stock.symbol == widget.symbol,
     );
 
+    final actionColor = _side == OrderSide.buy ? accentColor : sellColor;
+
     return Scaffold(
-      appBar: AppBar(title: Text('${stock.symbol} Order')),
+      backgroundColor: backgroundColor,
+
+      appBar: AppBar(
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        title: Text(
+          '${stock.symbol} Order',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 19.sp,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+
       body: BlocListener<OrderBloc, OrderState>(
         listener: (context, state) {
           if (state.status == OrderStatus.failure) {
@@ -79,8 +109,10 @@ class _OrderTicketScreenState extends State<OrderTicketScreen> {
             );
           }
         },
+
         child: BlocSelector<MarketBloc, MarketState, MarketPrice?>(
           selector: (state) => state.prices[widget.symbol],
+
           builder: (context, marketPrice) {
             final ltpPaise = marketPrice?.pricePaise ?? stock.initialPricePaise;
 
@@ -90,115 +122,170 @@ class _OrderTicketScreenState extends State<OrderTicketScreen> {
 
             return BlocSelector<OrderBloc, OrderState, int>(
               selector: (state) => state.wallet.balancePaise,
+
               builder: (context, balancePaise) {
                 final insufficientBalance =
                     _side == OrderSide.buy && orderValuePaise > balancePaise;
 
-                final canSubmit = quantity > 0 && !insufficientBalance;
+                final quantityError = _hasEditedQuantity
+                    ? _validateQuantity(_quantityController.text)
+                    : null;
+
+                final validQuantity = quantity > 0 && quantityError == null;
+
+                final canSubmit = validQuantity && !insufficientBalance;
 
                 return ListView(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 32.h),
                   children: [
-                    // -------------------------
-                    // STOCK
-                    // -------------------------
-                    Text(
-                      stock.symbol,
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
+                    StockHeader(symbol: stock.symbol, name: stock.name),
 
-                    const SizedBox(height: 4),
+                    SizedBox(height: 20.h),
 
-                    Text(stock.name),
+                    PriceCard(ltpPaise: ltpPaise, marketPrice: marketPrice),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: 20.h),
 
-                    // -------------------------
-                    // LIVE PRICE
-                    // -------------------------
-                    _PriceCard(ltpPaise: ltpPaise),
-
-                    const SizedBox(height: 24),
-
-                    // -------------------------
-                    // BUY / SELL
-                    // -------------------------
-                    SegmentedButton<OrderSide>(
-                      segments: const [
-                        ButtonSegment(
-                          value: OrderSide.buy,
-                          label: Text('Buy'),
-                          icon: Icon(Icons.trending_up),
-                        ),
-                        ButtonSegment(
-                          value: OrderSide.sell,
-                          label: Text('Sell'),
-                          icon: Icon(Icons.trending_down),
-                        ),
-                      ],
-                      selected: {_side},
-                      onSelectionChanged: (selection) {
+                    OrderSideSelector(
+                      side: _side,
+                      onChanged: (side) {
                         setState(() {
-                          _side = selection.first;
+                          _side = side;
                         });
                       },
                     ),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: 20.h),
 
-                    // -------------------------
-                    // QUANTITY
-                    // -------------------------
+                    Text(
+                      'Quantity',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+
+                    SizedBox(height: 8.h),
+
                     TextField(
                       controller: _quantityController,
                       keyboardType: TextInputType.number,
+                      style: TextStyle(color: Colors.white, fontSize: 15.sp),
+                      cursorColor: actionColor,
                       decoration: InputDecoration(
-                        labelText: 'Quantity',
                         hintText: 'Enter quantity',
-                        border: const OutlineInputBorder(),
-                        errorText: _validateQuantity(_quantityController.text),
+                        hintStyle: TextStyle(
+                          color: secondaryTextColor,
+                          fontSize: 14.sp,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.numbers_rounded,
+                          color: secondaryTextColor,
+                          size: 20.sp,
+                        ),
+                        errorText: quantityError,
+                        filled: true,
+                        fillColor: cardColor,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 14.w,
+                          vertical: 15.h,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14.r),
+                          borderSide: const BorderSide(color: borderColor),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14.r),
+                          borderSide: const BorderSide(color: borderColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14.r),
+                          borderSide: BorderSide(
+                            color: actionColor,
+                            width: 1.2,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14.r),
+                          borderSide: const BorderSide(color: sellColor),
+                        ),
                       ),
                       onChanged: (_) {
-                        setState(() {});
+                        setState(() {
+                          _hasEditedQuantity = true;
+                        });
                       },
                     ),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: 20.h),
 
-                    // -------------------------
+                    // --------------------------------
                     // ORDER SUMMARY
-                    // -------------------------
-                    _OrderSummary(
+                    // --------------------------------
+                    OrderSummary(
                       balancePaise: balancePaise,
                       quantity: quantity,
                       ltpPaise: ltpPaise,
                       orderValuePaise: orderValuePaise,
                     ),
 
-                    // -------------------------
-                    // BALANCE ERROR
-                    // -------------------------
-                    if (insufficientBalance)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 12),
-                        child: Text(
-                          'Insufficient balance for this order',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w500,
+                    // --------------------------------
+                    // INSUFFICIENT BALANCE
+                    // --------------------------------
+                    if (insufficientBalance) ...[
+                      SizedBox(height: 12.h),
+
+                      Container(
+                        padding: EdgeInsets.all(12.w),
+                        decoration: BoxDecoration(
+                          color: sellColor.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                            color: sellColor.withValues(alpha: 0.25),
                           ),
                         ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: sellColor,
+                              size: 20.sp,
+                            ),
+                            SizedBox(width: 8.w),
+                            Expanded(
+                              child: Text(
+                                'Insufficient balance for this order.',
+                                style: TextStyle(
+                                  color: sellColor,
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                    ],
 
-                    const SizedBox(height: 32),
+                    SizedBox(height: 24.h),
 
-                    // -------------------------
-                    // SUBMIT
-                    // -------------------------
+                    // --------------------------------
+                    // SUBMIT BUTTON
+                    // --------------------------------
                     SizedBox(
-                      height: 52,
+                      height: 54.h,
+                      width: double.infinity,
                       child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: actionColor,
+                          foregroundColor: Colors.black,
+                          disabledBackgroundColor: borderColor,
+                          disabledForegroundColor: secondaryTextColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14.r),
+                          ),
+                        ),
                         onPressed: canSubmit
                             ? () {
                                 _submitOrder(context, stock.symbol, quantity);
@@ -208,6 +295,10 @@ class _OrderTicketScreenState extends State<OrderTicketScreen> {
                           _side == OrderSide.buy
                               ? 'Buy ${stock.symbol}'
                               : 'Sell ${stock.symbol}',
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
@@ -224,128 +315,6 @@ class _OrderTicketScreenState extends State<OrderTicketScreen> {
   void _submitOrder(BuildContext context, String symbol, int quantity) {
     context.read<OrderBloc>().add(
       SubmitOrder(symbol: symbol, side: _side, quantity: quantity),
-    );
-  }
-}
-
-// ======================================================
-// PRICE CARD
-// ======================================================
-
-class _PriceCard extends StatelessWidget {
-  final int ltpPaise;
-
-  const _PriceCard({required this.ltpPaise});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('LTP', style: TextStyle(fontWeight: FontWeight.w600)),
-            Text(
-              '₹${(ltpPaise / 100).toStringAsFixed(2)}',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ======================================================
-// ORDER SUMMARY
-// ======================================================
-
-class _OrderSummary extends StatelessWidget {
-  final int balancePaise;
-  final int quantity;
-  final int ltpPaise;
-  final int orderValuePaise;
-
-  const _OrderSummary({
-    required this.balancePaise,
-    required this.quantity,
-    required this.ltpPaise,
-    required this.orderValuePaise,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Available balance
-            _SummaryRow(
-              label: 'Available Balance',
-              value: '₹${(balancePaise / 100).toStringAsFixed(2)}',
-              bold: true,
-            ),
-
-            const SizedBox(height: 16),
-
-            // Quantity
-            _SummaryRow(label: 'Quantity', value: quantity.toString()),
-
-            const SizedBox(height: 12),
-
-            // Current price
-            _SummaryRow(
-              label: 'Price',
-              value: '₹${(ltpPaise / 100).toStringAsFixed(2)}',
-            ),
-
-            const Divider(height: 24),
-
-            // Order value
-            _SummaryRow(
-              label: 'Order value',
-              value: '₹${(orderValuePaise / 100).toStringAsFixed(2)}',
-              bold: true,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ======================================================
-// SUMMARY ROW
-// ======================================================
-
-class _SummaryRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool bold;
-
-  const _SummaryRow({
-    required this.label,
-    required this.value,
-    this.bold = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ],
     );
   }
 }

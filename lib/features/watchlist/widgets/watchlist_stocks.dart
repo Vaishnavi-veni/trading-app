@@ -89,10 +89,10 @@ class WatchlistStocks extends StatelessWidget {
                   bottom: 0,
                   child: ReorderableDragStartListener(
                     index: index,
-                    child: const Center(
+                    child: Center(
                       child: Icon(
                         Icons.drag_indicator_rounded,
-                        size: 18,
+                        size: 18.sp,
                         color: Color(0xFF596573),
                       ),
                     ),
@@ -119,32 +119,32 @@ class _EmptyStocksState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 72,
-              height: 72,
+              width: 72.w,
+              height: 72.h,
               decoration: BoxDecoration(
                 color: const Color(0xFF151B23),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20.r),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.visibility_outlined,
-                size: 32,
+                size: 32.sp,
                 color: Color(0xFF596573),
               ),
             ),
-            const SizedBox(height: 20),
-            const Text(
+            SizedBox(height: 20.h),
+            Text(
               'Your watchlist is empty',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 18,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: 8.h),
+            Text(
               'Add stocks to start tracking their prices.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFF7D8794), fontSize: 13),
+              style: TextStyle(color: Color(0xFF7D8794), fontSize: 13.sp),
             ),
           ],
         ),

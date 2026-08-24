@@ -336,32 +336,29 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
       builder: (sheetContext) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+            padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 24.h),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Add stock',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6.h),
                 Text(
                   'Select a stock to add to ${watchlist.name}',
-                  style: const TextStyle(
-                    color: secondaryTextColor,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: secondaryTextColor, fontSize: 13.sp),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16.h),
 
                 if (availableStocks.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 32),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32.h),
                     child: Center(
                       child: Text(
                         'All available stocks are already added.',
@@ -375,14 +372,14 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: availableStocks.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      separatorBuilder: (_, __) => SizedBox(height: 8.h),
                       itemBuilder: (_, index) {
                         final stock = availableStocks.elementAt(index);
 
                         return Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFF1B222C),
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(14.r),
                             border: Border.all(color: borderColor),
                           ),
                           child: ListTile(
@@ -397,8 +394,8 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                               Navigator.pop(sheetContext);
                             },
                             leading: Container(
-                              width: 42,
-                              height: 42,
+                              width: 42.w,
+                              height: 42.h,
                               decoration: BoxDecoration(
                                 color: const Color(0xFF252E39),
                                 borderRadius: BorderRadius.circular(11),
@@ -411,9 +408,9 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                                       ? 2
                                       : stock.symbol.length,
                                 ),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 12,
+                                  fontSize: 12.sp,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -427,9 +424,9 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                             ),
                             subtitle: Text(
                               stock.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: secondaryTextColor,
-                                fontSize: 12,
+                                fontSize: 12.sp,
                               ),
                             ),
                             trailing: const Icon(
@@ -457,11 +454,11 @@ InputDecoration _inputDecoration({required String label, String? hint}) {
     labelStyle: const TextStyle(color: Color(0xFF7D8794)),
     hintStyle: const TextStyle(color: Color(0xFF596573)),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.r),
       borderSide: const BorderSide(color: Color(0xFF202832)),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.r),
       borderSide: const BorderSide(color: Color(0xFF4ADE80)),
     ),
   );

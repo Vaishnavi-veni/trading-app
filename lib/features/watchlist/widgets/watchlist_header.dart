@@ -68,11 +68,11 @@ class WatchlistHeader extends StatelessWidget {
           SizedBox(width: 8.w),
 
           Container(
-            height: 52,
-            width: 52,
+            height: 52.h,
+            width: 52.w,
             decoration: BoxDecoration(
               color: const Color(0xFF151B23),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(color: const Color(0xFF202832)),
             ),
             child: PopupMenuButton<String>(
@@ -85,13 +85,17 @@ class WatchlistHeader extends StatelessWidget {
                   onDelete();
                 }
               },
-              itemBuilder: (context) => const [
+              itemBuilder: (context) => [
                 PopupMenuItem(
                   value: 'rename',
                   child: Row(
                     children: [
-                      Icon(Icons.edit_outlined, size: 18, color: Colors.white),
-                      SizedBox(width: 10),
+                      Icon(
+                        Icons.edit_outlined,
+                        size: 18.sp,
+                        color: Colors.white,
+                      ),
+                      SizedBox(width: 10.w),
                       Text('Rename'),
                     ],
                   ),
@@ -102,10 +106,10 @@ class WatchlistHeader extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.delete_outline_rounded,
-                        size: 18,
+                        size: 18.sp,
                         color: Color(0xFFF87171),
                       ),
-                      SizedBox(width: 10),
+                      SizedBox(width: 10.w),
                       Text('Delete'),
                     ],
                   ),

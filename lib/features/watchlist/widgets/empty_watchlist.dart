@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class EmptyWatchlist extends StatelessWidget {
   final VoidCallback onCreate;
@@ -14,46 +15,43 @@ class EmptyWatchlist extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 80.w,
+              height: 80.h,
               decoration: BoxDecoration(
                 color: const Color(0xFF151B23),
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.visibility_outlined,
-                size: 36,
+                size: 36.sp,
                 color: Color(0xFF596573),
               ),
             ),
-            const SizedBox(height: 20),
-            const Text(
+            SizedBox(height: 20.h),
+            Text(
               'No watchlists yet',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 20,
+                fontSize: 20.sp,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: 8.h),
+            Text(
               'Create a watchlist to start tracking your favorite stocks.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF7D8794),
-                fontSize: 13,
-                height: 1.4,
+                fontSize: 13.sp,
+                height: 1.4.h,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
             FilledButton.icon(
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF4ADE80),
                 foregroundColor: const Color(0xFF0B0F14),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 13,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 13.h),
               ),
               onPressed: onCreate,
               icon: const Icon(Icons.add_rounded),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ErrorState extends StatelessWidget {
   final String message;
@@ -13,12 +14,12 @@ class ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline_rounded,
-              size: 48,
+              size: 48.sp,
               color: Color(0xFFF87171),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             Text(
               message,
               textAlign: TextAlign.center,
