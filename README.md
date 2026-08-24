@@ -1,17 +1,71 @@
-# trading_app
+# Trading App
 
-A new Flutter project.
+A Flutter-based stock trading application built as part of a Flutter Developer assignment.
 
-## Getting Started
+The app demonstrates a simulated trading experience with market data, watchlists, holdings, order placement, and order history.
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+- 📈 Market screen with live simulated price updates
+- 🔎 Stock search
+- ⭐ Multiple watchlists
+- ➕ Add and remove stocks from watchlists
+- ↕️ Reorder watchlist stocks
+- 💼 Holdings with portfolio summary
+- 📊 Portfolio P&L calculation
+- 🛒 Buy and sell orders
+- 💰 Wallet balance validation
+- ✅ Order confirmation
+- 📋 Order history
+- 📱 Responsive UI
+- 🎨 Consistent dark trading-themed UI
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Stocks Used
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The app uses the following 10 stocks throughout the application:
+
+- RELIANCE
+- TCS
+- INFY
+- HDFCBANK
+- ICICIBANK
+- SBIN
+- ITC
+- LT
+- BHARTIARTL
+- AXISBANK
+
+## Architecture
+
+The application follows a feature-based architecture with BLoC for state management.
+
+```text
+lib/
+├── core/
+│
+├── features/
+│   ├── market/
+│   │   ├── bloc/
+│   │   ├── data/
+│   │   ├── screens/
+│   │   └── widgets/
+│   │
+│   ├── watchlist/
+│   │   ├── bloc/
+│   │   ├── data/
+│   │   ├── screens/
+│   │   └── widgets/
+│   │
+│   ├── holdings/
+│   │   ├── bloc/
+│   │   ├── data/
+│   │   ├── screens/
+│   │   └── widgets/
+│   │
+│   └── trading/
+│       ├── bloc/
+│       ├── data/
+│       ├── screens/
+│       └── widgets/
+│
+└── main.dart
