@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:trading_app/features/trading/bloc/order_bloc.dart';
 import 'package:trading_app/features/trading/bloc/order_event.dart';
 import 'package:trading_app/features/trading/bloc/order_state.dart';
@@ -82,87 +83,132 @@ class _OrderTicketScreenState extends State<OrderTicketScreen> {
 
             final orderValuePaise = quantity * ltpPaise;
 
-            return ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                Text(
-                  stock.symbol,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(stock.name),
+            return BlocSelector<OrderBloc, OrderState, int>(
+              selector: (state) => state.wallet.balancePaise,
+              builder: (context, balancePaise) {
+                final insufficientBalance =
+                    _side == OrderSide.buy && orderValuePaise > balancePaise;
 
-                const SizedBox(height: 24),
+                final canSubmit = quantity > 0 && !insufficientBalance;
 
-                _PriceCard(ltpPaise: ltpPaise),
-
-                const SizedBox(height: 24),
-
-                SegmentedButton<OrderSide>(
-                  segments: const [
-                    ButtonSegment(
-                      value: OrderSide.buy,
-                      label: Text('Buy'),
-                      icon: Icon(Icons.trending_up),
+                return ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    // -------------------------
+                    // STOCK
+                    // -------------------------
+                    Text(
+                      stock.symbol,
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    ButtonSegment(
-                      value: OrderSide.sell,
-                      label: Text('Sell'),
-                      icon: Icon(Icons.trending_down),
+
+                    const SizedBox(height: 4),
+
+                    Text(stock.name),
+
+                    const SizedBox(height: 24),
+
+                    // -------------------------
+                    // LIVE PRICE
+                    // -------------------------
+                    _PriceCard(ltpPaise: ltpPaise),
+
+                    const SizedBox(height: 24),
+
+                    // -------------------------
+                    // BUY / SELL
+                    // -------------------------
+                    SegmentedButton<OrderSide>(
+                      segments: const [
+                        ButtonSegment(
+                          value: OrderSide.buy,
+                          label: Text('Buy'),
+                          icon: Icon(Icons.trending_up),
+                        ),
+                        ButtonSegment(
+                          value: OrderSide.sell,
+                          label: Text('Sell'),
+                          icon: Icon(Icons.trending_down),
+                        ),
+                      ],
+                      selected: {_side},
+                      onSelectionChanged: (selection) {
+                        setState(() {
+                          _side = selection.first;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // -------------------------
+                    // QUANTITY
+                    // -------------------------
+                    TextField(
+                      controller: _quantityController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Quantity',
+                        hintText: 'Enter quantity',
+                        border: const OutlineInputBorder(),
+                        errorText: _validateQuantity(_quantityController.text),
+                      ),
+                      onChanged: (_) {
+                        setState(() {});
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // -------------------------
+                    // ORDER SUMMARY
+                    // -------------------------
+                    _OrderSummary(
+                      balancePaise: balancePaise,
+                      quantity: quantity,
+                      ltpPaise: ltpPaise,
+                      orderValuePaise: orderValuePaise,
+                    ),
+
+                    // -------------------------
+                    // BALANCE ERROR
+                    // -------------------------
+                    if (insufficientBalance)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 12),
+                        child: Text(
+                          'Insufficient balance for this order',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(height: 32),
+
+                    // -------------------------
+                    // SUBMIT
+                    // -------------------------
+                    SizedBox(
+                      height: 52,
+                      child: FilledButton(
+                        onPressed: canSubmit
+                            ? () {
+                                _submitOrder(context, stock.symbol, quantity);
+                              }
+                            : null,
+                        child: Text(
+                          _side == OrderSide.buy
+                              ? 'Buy ${stock.symbol}'
+                              : 'Sell ${stock.symbol}',
+                        ),
+                      ),
                     ),
                   ],
-                  selected: {_side},
-                  onSelectionChanged: (selection) {
-                    setState(() {
-                      _side = selection.first;
-                    });
-                  },
-                ),
-
-                const SizedBox(height: 24),
-
-                TextField(
-                  controller: _quantityController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Quantity',
-                    hintText: 'Enter quantity',
-                    border: const OutlineInputBorder(),
-                    errorText: _validateQuantity(_quantityController.text),
-                  ),
-                  onChanged: (_) {
-                    setState(() {});
-                  },
-                ),
-
-                const SizedBox(height: 24),
-
-                _OrderSummary(
-                  quantity: quantity,
-                  ltpPaise: ltpPaise,
-                  orderValuePaise: orderValuePaise,
-                ),
-
-                const SizedBox(height: 32),
-
-                SizedBox(
-                  height: 52,
-                  child: FilledButton(
-                    onPressed: quantity > 0
-                        ? () {
-                            _submitOrder(context, stock.symbol, quantity);
-                          }
-                        : null,
-                    child: Text(
-                      _side == OrderSide.buy
-                          ? 'Buy ${stock.symbol}'
-                          : 'Sell ${stock.symbol}',
-                    ),
-                  ),
-                ),
-              ],
+                );
+              },
             );
           },
         ),
@@ -176,6 +222,10 @@ class _OrderTicketScreenState extends State<OrderTicketScreen> {
     );
   }
 }
+
+// ======================================================
+// PRICE CARD
+// ======================================================
 
 class _PriceCard extends StatelessWidget {
   final int ltpPaise;
@@ -204,12 +254,18 @@ class _PriceCard extends StatelessWidget {
   }
 }
 
+// ======================================================
+// ORDER SUMMARY
+// ======================================================
+
 class _OrderSummary extends StatelessWidget {
+  final int balancePaise;
   final int quantity;
   final int ltpPaise;
   final int orderValuePaise;
 
   const _OrderSummary({
+    required this.balancePaise,
     required this.quantity,
     required this.ltpPaise,
     required this.orderValuePaise,
@@ -222,14 +278,29 @@ class _OrderSummary extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _AvailableBalance(),
+            // Available balance
+            _SummaryRow(
+              label: 'Available Balance',
+              value: '₹${(balancePaise / 100).toStringAsFixed(2)}',
+              bold: true,
+            ),
+
+            const SizedBox(height: 16),
+
+            // Quantity
             _SummaryRow(label: 'Quantity', value: quantity.toString()),
+
             const SizedBox(height: 12),
+
+            // Current price
             _SummaryRow(
               label: 'Price',
               value: '₹${(ltpPaise / 100).toStringAsFixed(2)}',
             ),
+
             const Divider(height: 24),
+
+            // Order value
             _SummaryRow(
               label: 'Order value',
               value: '₹${(orderValuePaise / 100).toStringAsFixed(2)}',
@@ -241,6 +312,10 @@ class _OrderSummary extends StatelessWidget {
     );
   }
 }
+
+// ======================================================
+// SUMMARY ROW
+// ======================================================
 
 class _SummaryRow extends StatelessWidget {
   final String label;
@@ -266,27 +341,6 @@ class _SummaryRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _AvailableBalance extends StatelessWidget {
-  const _AvailableBalance();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocSelector<OrderBloc, OrderState, int>(
-      selector: (state) => state.wallet.balancePaise,
-      builder: (context, balancePaise) {
-        return ListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Available Balance'),
-          trailing: Text(
-            '₹${(balancePaise / 100).toStringAsFixed(2)}',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
-        );
-      },
     );
   }
 }
