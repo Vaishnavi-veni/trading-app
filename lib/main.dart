@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trading_app/features/market/bloc/market_bloc.dart';
 import 'package:trading_app/features/market/bloc/market_event.dart';
+import 'package:trading_app/features/market/data/datasources/market_config_feed.dart';
 import 'package:trading_app/features/market/data/datasources/mock_market_feed.dart';
 
 import 'features/market/screens/market_screen.dart';
@@ -16,9 +17,11 @@ class TradingApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          MarketBloc(marketFeed: MockMarketFeed())
-            ..add(const StartMarketFeed()),
+      create: (_) => MarketBloc(
+        marketFeed: MockMarketFeed(
+          tickInterval: MarketFeedConfig.stressTickInterval,
+        ),
+      )..add(const StartMarketFeed()),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Trading App',

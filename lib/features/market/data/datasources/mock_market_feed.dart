@@ -7,11 +7,21 @@ import 'stock_data.dart';
 class MockMarketFeed {
   MockMarketFeed({this.tickInterval = const Duration(milliseconds: 500)});
 
+  /// How frequently the feed emits a tick.
+  ///
+  /// Example:
+  /// 500ms  -> ~2 ticks/sec overall
+  /// 100ms  -> ~10 ticks/sec overall
+  /// 20ms   -> ~50 ticks/sec overall
   final Duration tickInterval;
 
   final Random _random = Random();
 
   final Map<String, int> _prices = {
+    for (final stock in StockData.stocks) stock.symbol: stock.initialPricePaise,
+  };
+
+  final Map<String, int> _referencePrices = {
     for (final stock in StockData.stocks) stock.symbol: stock.initialPricePaise,
   };
 
@@ -22,25 +32,19 @@ class MockMarketFeed {
 
   Stream<MarketTick> get ticks => _controller.stream;
 
-  final Map<String, int> _referencePrices = {
-    for (final stock in StockData.stocks) stock.symbol: stock.initialPricePaise,
-  };
-
-  int getReferencePrice(String symbol) {
-    return _referencePrices[symbol] ?? 0;
-  }
-
   void start() {
     if (_timer != null) {
       return;
     }
 
-    _timer = Timer.periodic(tickInterval, (_) {
-      _emitTick();
-    });
+    _timer = Timer.periodic(tickInterval, (_) => _emitTick());
   }
 
   void _emitTick() {
+    if (_controller.isClosed) {
+      return;
+    }
+
     final stock = StockData.stocks[_random.nextInt(StockData.stocks.length)];
 
     final previousPrice = _prices[stock.symbol]!;
@@ -50,10 +54,10 @@ class MockMarketFeed {
 
     var newPrice = (previousPrice * (1 + movementPercent / 100)).round();
 
-    // Price can never become zero or negative.
+    // Never allow the price to become zero or negative.
     newPrice = max(1, newPrice);
 
-    // Don't emit a useless tick if the rounded value hasn't changed.
+    // Don't emit an unnecessary update.
     if (newPrice == previousPrice) {
       return;
     }
@@ -71,6 +75,10 @@ class MockMarketFeed {
 
   int getPrice(String symbol) {
     return _prices[symbol] ?? 0;
+  }
+
+  int getReferencePrice(String symbol) {
+    return _referencePrices[symbol] ?? 0;
   }
 
   Map<String, int> get currentPrices {
