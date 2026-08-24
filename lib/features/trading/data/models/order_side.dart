@@ -1,0 +1,1 @@
+enum OrderSide { buy, sell }

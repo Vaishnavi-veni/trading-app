@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trading_app/features/trading/screens/order_ticket_screen.dart';
 
 import '../../market/data/datasources/stock_data.dart';
 import '../../market/widgets/stock_price_tile.dart';
@@ -371,6 +372,7 @@ class _WatchlistStocks extends StatelessWidget {
     }
 
     return ReorderableListView.builder(
+      buildDefaultDragHandles: false,
       itemCount: watchlist.stockSymbols.length,
       onReorder: (oldIndex, newIndex) {
         context.read<WatchlistBloc>().add(
@@ -389,8 +391,17 @@ class _WatchlistStocks extends StatelessWidget {
         );
 
         return Dismissible(
-          key: ValueKey(symbol),
+          key: ValueKey('${watchlist.id}-$symbol'),
+
           direction: DismissDirection.endToStart,
+
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 20),
+            color: Colors.red,
+            child: const Icon(Icons.delete, color: Colors.white),
+          ),
+
           confirmDismiss: (_) async {
             context.read<WatchlistBloc>().add(
               RemoveStockFromWatchlist(
@@ -401,15 +412,18 @@ class _WatchlistStocks extends StatelessWidget {
 
             return false;
           },
-          background: Container(
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            color: Colors.red,
-            child: const Icon(Icons.delete, color: Colors.white),
-          ),
+
           child: StockPriceTile(
-            key: ValueKey('${watchlist.id}-$symbol'),
             stock: stock,
+            onTap: () {
+              debugPrint('Opening order ticket for ${stock.symbol}');
+
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => OrderTicketScreen(symbol: stock.symbol),
+                ),
+              );
+            },
           ),
         );
       },

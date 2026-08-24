@@ -34,36 +34,40 @@ class StockPriceTile extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(color: tickColor.withValues(alpha: 0.08)),
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              stock.symbol,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(stock.name),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '₹${(pricePaise / 100).toStringAsFixed(2)}',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${changePaise >= 0 ? '+' : ''}'
-                  '₹${(changePaise / 100).toStringAsFixed(2)} '
-                  '(${changePercent.toStringAsFixed(2)}%)',
-                  style: TextStyle(
-                    color: changePaise > 0
-                        ? Colors.green
-                        : changePaise < 0
-                        ? Colors.red
-                        : Colors.grey,
-                    fontSize: 12,
+          child: Material(
+            color: Colors.transparent,
+            child: ListTile(
+              onTap: onTap,
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                stock.symbol,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(stock.name),
+              trailing: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '₹${(pricePaise / 100).toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    '${changePaise >= 0 ? '+' : ''}'
+                    '₹${(changePaise / 100).toStringAsFixed(2)} '
+                    '(${changePercent.toStringAsFixed(2)}%)',
+                    style: TextStyle(
+                      color: changePaise > 0
+                          ? Colors.green
+                          : changePaise < 0
+                          ? Colors.red
+                          : Colors.grey,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
