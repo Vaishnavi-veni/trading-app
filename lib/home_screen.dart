@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trading_app/features/holdings/screens/holdings_screen.dart';
 
 import 'features/market/screens/market_screen.dart';
 import 'features/watchlist/screens/watchlist_screen.dart';
@@ -13,7 +14,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [MarketScreen(), WatchlistScreen()];
+  final List<Widget> _screens = const [
+    MarketScreen(),
+    WatchlistScreen(),
+    HoldingsScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +36,10 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(
             icon: Icon(Icons.visibility_outlined),
             label: 'Watchlist',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            label: 'Holdings',
           ),
         ],
       ),

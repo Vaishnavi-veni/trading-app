@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trading_app/features/holdings/bloc/holdings_bloc.dart';
+import 'package:trading_app/features/holdings/bloc/holdings_event.dart';
 
 import 'features/market/bloc/market_bloc.dart';
 import 'features/market/bloc/market_event.dart';
@@ -55,6 +57,12 @@ class TradingApp extends StatelessWidget {
             repository: tradingRepository,
             marketBloc: context.read<MarketBloc>(),
           ),
+        ),
+
+        BlocProvider(
+          create: (context) =>
+              HoldingsBloc(repository: tradingRepository)
+                ..add(const LoadHoldings()),
         ),
       ],
       child: MaterialApp(
