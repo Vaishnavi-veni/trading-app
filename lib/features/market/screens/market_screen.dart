@@ -57,15 +57,6 @@ class _MarketScreenState extends State<MarketScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: Colors.white,
-            ),
-          ),
-        ],
       ),
       body: SafeArea(
         child: ListView(
