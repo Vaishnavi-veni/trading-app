@@ -4,6 +4,10 @@ import 'package:trading_app/features/market/bloc/market_bloc.dart';
 import 'package:trading_app/features/market/bloc/market_event.dart';
 import 'package:trading_app/features/market/data/datasources/market_config_feed.dart';
 import 'package:trading_app/features/market/data/datasources/mock_market_feed.dart';
+import 'package:trading_app/features/watchlist/bloc/watchlist_bloc.dart';
+import 'package:trading_app/features/watchlist/bloc/watchlist_event.dart';
+import 'package:trading_app/features/watchlist/data/datasources/watchlist_local_datasource.dart';
+import 'package:trading_app/home_screen.dart';
 
 import 'features/market/screens/market_screen.dart';
 
@@ -16,12 +20,22 @@ class TradingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => MarketBloc(
-        marketFeed: MockMarketFeed(
-          tickInterval: MarketFeedConfig.stressTickInterval,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => MarketBloc(
+            marketFeed: MockMarketFeed(
+              tickInterval: MarketFeedConfig.normalTickInterval,
+            ),
+          )..add(const StartMarketFeed()),
         ),
-      )..add(const StartMarketFeed()),
+
+        BlocProvider(
+          create: (_) =>
+              WatchlistBloc(dataSource: WatchlistLocalDataSource())
+                ..add(const LoadWatchlists()),
+        ),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Trading App',
@@ -29,7 +43,7 @@ class TradingApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
         ),
-        home: const MarketScreen(),
+        home: const HomeScreen(),
       ),
     );
   }
