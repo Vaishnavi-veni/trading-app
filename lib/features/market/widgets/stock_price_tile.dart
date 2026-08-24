@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:trading_app/features/market/data/datasources/stock_data.dart';
 import 'package:trading_app/features/market/data/models/stock_model.dart';
 
 import '../bloc/market_bloc.dart';
@@ -22,38 +21,49 @@ class StockPriceTile extends StatelessWidget {
 
         final changePercent = marketPrice?.changePercent ?? 0;
 
-        final isUp = changePaise > 0;
-        final isDown = changePaise < 0;
+        final tickColor = marketPrice == null
+            ? Colors.transparent
+            : marketPrice.tickIsUp
+            ? Colors.green
+            : marketPrice.tickIsDown
+            ? Colors.red
+            : Colors.transparent;
 
-        return ListTile(
-          title: Text(
-            stock.symbol,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Text(stock.name),
-          trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '₹${(pricePaise / 100).toStringAsFixed(2)}',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${isUp ? '+' : ''}'
-                '₹${(changePaise / 100).toStringAsFixed(2)} '
-                '(${changePercent.toStringAsFixed(2)}%)',
-                style: TextStyle(
-                  color: isUp
-                      ? Colors.green
-                      : isDown
-                      ? Colors.red
-                      : Colors.grey,
-                  fontSize: 12,
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(color: tickColor.withValues(alpha: 0.08)),
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              stock.symbol,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(stock.name),
+            trailing: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '₹${(pricePaise / 100).toStringAsFixed(2)}',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  '${changePaise >= 0 ? '+' : ''}'
+                  '₹${(changePaise / 100).toStringAsFixed(2)} '
+                  '(${changePercent.toStringAsFixed(2)}%)',
+                  style: TextStyle(
+                    color: changePaise > 0
+                        ? Colors.green
+                        : changePaise < 0
+                        ? Colors.red
+                        : Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

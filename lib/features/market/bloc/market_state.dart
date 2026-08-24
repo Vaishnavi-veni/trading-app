@@ -4,26 +4,46 @@ class MarketPrice {
   final String symbol;
   final int pricePaise;
   final int previousPricePaise;
+  final int referencePricePaise;
 
   const MarketPrice({
     required this.symbol,
     required this.pricePaise,
     required this.previousPricePaise,
+    required this.referencePricePaise,
   });
 
-  int get changePaise => pricePaise - previousPricePaise;
+  int get changePaise {
+    return pricePaise - referencePricePaise;
+  }
 
   double get changePercent {
-    if (previousPricePaise == 0) {
+    if (referencePricePaise == 0) {
       return 0;
     }
 
-    return (changePaise / previousPricePaise) * 100;
+    return (changePaise / referencePricePaise) * 100;
   }
 
-  bool get isUp => changePaise > 0;
+  bool get tickIsUp {
+    return pricePaise > previousPricePaise;
+  }
 
-  bool get isDown => changePaise < 0;
+  bool get tickIsDown {
+    return pricePaise < previousPricePaise;
+  }
+
+  bool get tickIsUnchanged {
+    return pricePaise == previousPricePaise;
+  }
+
+  bool get isPositive {
+    return changePaise > 0;
+  }
+
+  bool get isNegative {
+    return changePaise < 0;
+  }
 }
 
 class MarketState extends Equatable {

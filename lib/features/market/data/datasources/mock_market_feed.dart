@@ -22,6 +22,14 @@ class MockMarketFeed {
 
   Stream<MarketTick> get ticks => _controller.stream;
 
+  final Map<String, int> _referencePrices = {
+    for (final stock in StockData.stocks) stock.symbol: stock.initialPricePaise,
+  };
+
+  int getReferencePrice(String symbol) {
+    return _referencePrices[symbol] ?? 0;
+  }
+
   void start() {
     if (_timer != null) {
       return;

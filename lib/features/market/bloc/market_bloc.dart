@@ -32,6 +32,7 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
           symbol: tick.symbol,
           pricePaise: tick.pricePaise,
           previousPricePaise: tick.previousPricePaise,
+          referencePricePaise: _marketFeed.getReferencePrice(tick.symbol),
         ),
       );
     });
@@ -59,6 +60,7 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
       symbol: event.symbol,
       pricePaise: event.pricePaise,
       previousPricePaise: event.previousPricePaise,
+      referencePricePaise: event.referencePricePaise,
     );
 
     emit(state.copyWith(prices: updatedPrices));
