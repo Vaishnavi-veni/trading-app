@@ -9,16 +9,12 @@ class Holding {
     required this.averagePricePaise,
   });
 
-  Holding copyWith({int? quantity, int? averagePricePaise}) {
+  Holding copyWith({String? symbol, int? quantity, int? averagePricePaise}) {
     return Holding(
-      symbol: symbol,
+      symbol: symbol ?? this.symbol,
       quantity: quantity ?? this.quantity,
       averagePricePaise: averagePricePaise ?? this.averagePricePaise,
     );
-  }
-
-  int get investedValuePaise {
-    return quantity * averagePricePaise;
   }
 
   Map<String, dynamic> toJson() {
@@ -32,8 +28,8 @@ class Holding {
   factory Holding.fromJson(Map<String, dynamic> json) {
     return Holding(
       symbol: json['symbol'] as String,
-      quantity: json['quantity'] as int,
-      averagePricePaise: json['averagePricePaise'] as int,
+      quantity: (json['quantity'] as num).toInt(),
+      averagePricePaise: (json['averagePricePaise'] as num).toInt(),
     );
   }
 }

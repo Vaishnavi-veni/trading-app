@@ -1,9 +1,17 @@
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/holding.dart';
 import '../models/order.dart';
 import '../models/order_side.dart';
 import '../models/wallet.dart';
 
 class TradingRepository {
+  static const _walletKey = 'trading_wallet';
+  static const _holdingsKey = 'trading_holdings';
+  static const _ordersKey = 'trading_orders';
+
   Wallet _wallet = const Wallet(
     balancePaise: 10000000, // ₹1,00,000
   );
@@ -12,11 +20,54 @@ class TradingRepository {
 
   final List<Order> _orders = [];
 
+  SharedPreferences? _preferences;
+
   Wallet get wallet => _wallet;
 
-  List<Holding> get holdings => _holdings.values.toList();
+  List<Holding> get holdings => List.unmodifiable(_holdings.values);
 
   List<Order> get orders => List.unmodifiable(_orders);
+
+  Future<void> load() async {
+    _preferences = await SharedPreferences.getInstance();
+
+    final walletJson = _preferences!.getString(_walletKey);
+
+    print('WALLET SAVED DATA: $walletJson');
+
+    if (walletJson != null) {
+      final decoded = jsonDecode(walletJson) as Map<String, dynamic>;
+
+      _wallet = Wallet.fromJson(decoded);
+    }
+
+    print('WALLET AFTER LOAD: ${_wallet.balancePaise}');
+    final holdingsJson = _preferences!.getString(_holdingsKey);
+
+    if (holdingsJson != null) {
+      final decoded = jsonDecode(holdingsJson) as List<dynamic>;
+
+      _holdings.clear();
+
+      for (final item in decoded) {
+        final holding = Holding.fromJson(item as Map<String, dynamic>);
+
+        _holdings[holding.symbol] = holding;
+      }
+    }
+
+    final ordersJson = _preferences!.getString(_ordersKey);
+
+    if (ordersJson != null) {
+      final decoded = jsonDecode(ordersJson) as List<dynamic>;
+
+      _orders.clear();
+
+      for (final item in decoded) {
+        _orders.add(Order.fromJson(item as Map<String, dynamic>));
+      }
+    }
+  }
 
   bool canBuy(int orderValuePaise) {
     return orderValuePaise <= _wallet.balancePaise;
@@ -32,14 +83,18 @@ class TradingRepository {
     return holding.quantity >= quantity;
   }
 
-  Order executeOrder({
+  Future<Order> executeOrder({
     required String symbol,
     required OrderSide side,
     required int quantity,
     required int executionPricePaise,
-  }) {
+  }) async {
     if (quantity <= 0) {
       throw Exception('Quantity must be greater than zero.');
+    }
+
+    if (executionPricePaise <= 0) {
+      throw Exception('Invalid execution price.');
     }
 
     final orderValuePaise = quantity * executionPricePaise;
@@ -77,6 +132,8 @@ class TradingRepository {
 
     _orders.add(order);
 
+    await _save();
+
     return order;
   }
 
@@ -93,6 +150,7 @@ class TradingRepository {
 
     final existing = _holdings[symbol];
 
+    // First purchase
     if (existing == null) {
       _holdings[symbol] = Holding(
         symbol: symbol,
@@ -131,5 +189,30 @@ class TradingRepository {
     } else {
       _holdings[symbol] = existing.copyWith(quantity: remainingQuantity);
     }
+  }
+
+  Future<void> _save() async {
+    final preferences = _preferences;
+
+    if (preferences == null) {
+      throw StateError(
+        'TradingRepository has not been initialized. '
+        'Call load() before trading.',
+      );
+    }
+
+    await preferences.setString(_walletKey, jsonEncode(_wallet.toJson()));
+
+    await preferences.setString(
+      _holdingsKey,
+      jsonEncode(_holdings.values.map((holding) => holding.toJson()).toList()),
+    );
+
+    await preferences.setString(
+      _ordersKey,
+      jsonEncode(_orders.map((order) => order.toJson()).toList()),
+    );
+
+    print('WALLET SAVED: ${_wallet.balancePaise}');
   }
 }

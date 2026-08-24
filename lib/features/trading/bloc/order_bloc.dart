@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../market/bloc/market_bloc.dart';
-import '../../market/bloc/market_state.dart';
 import '../data/repositories/trading_repository.dart';
 
 import 'order_event.dart';
@@ -12,11 +11,20 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   final MarketBloc marketBloc;
 
   OrderBloc({required this.repository, required this.marketBloc})
-    : super(const OrderState()) {
+    : super(
+        OrderState(
+          wallet: repository.wallet,
+          holdings: repository.holdings,
+          orders: repository.orders,
+        ),
+      ) {
     on<SubmitOrder>(_onSubmitOrder);
   }
 
-  void _onSubmitOrder(SubmitOrder event, Emitter<OrderState> emit) {
+  Future<void> _onSubmitOrder(
+    SubmitOrder event,
+    Emitter<OrderState> emit,
+  ) async {
     emit(state.copyWith(status: OrderStatus.submitting, errorMessage: null));
 
     try {
@@ -34,7 +42,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
 
       final executionPricePaise = marketPrice.pricePaise;
 
-      final order = repository.executeOrder(
+      final order = await repository.executeOrder(
         symbol: event.symbol,
         side: event.side,
         quantity: event.quantity,

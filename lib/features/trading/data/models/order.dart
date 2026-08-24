@@ -17,10 +17,6 @@ class Order {
     required this.createdAt,
   });
 
-  int get valuePaise {
-    return quantity * pricePaise;
-  }
-
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -36,9 +32,9 @@ class Order {
     return Order(
       id: json['id'] as String,
       symbol: json['symbol'] as String,
-      side: OrderSide.values.byName(json['side'] as String),
-      quantity: json['quantity'] as int,
-      pricePaise: json['pricePaise'] as int,
+      side: OrderSide.values.firstWhere((side) => side.name == json['side']),
+      quantity: (json['quantity'] as num).toInt(),
+      pricePaise: (json['pricePaise'] as num).toInt(),
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }

@@ -1,49 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:trading_app/features/market/bloc/market_bloc.dart';
-import 'package:trading_app/features/market/bloc/market_event.dart';
-import 'package:trading_app/features/market/data/datasources/market_config_feed.dart';
-import 'package:trading_app/features/market/data/datasources/mock_market_feed.dart';
+import 'features/market/bloc/market_bloc.dart';
+import 'features/market/bloc/market_event.dart';
+import 'features/market/data/datasources/market_config_feed.dart';
+import 'features/market/data/datasources/mock_market_feed.dart';
 
-import 'package:trading_app/features/trading/bloc/order_bloc.dart';
-import 'package:trading_app/features/trading/data/repositories/trading_repository.dart';
+import 'features/trading/bloc/order_bloc.dart';
+import 'features/trading/data/repositories/trading_repository.dart';
 
-import 'package:trading_app/features/watchlist/bloc/watchlist_bloc.dart';
-import 'package:trading_app/features/watchlist/bloc/watchlist_event.dart';
-import 'package:trading_app/features/watchlist/data/datasources/watchlist_local_datasource.dart';
+import 'features/watchlist/bloc/watchlist_bloc.dart';
+import 'features/watchlist/bloc/watchlist_event.dart';
+import 'features/watchlist/data/datasources/watchlist_local_datasource.dart';
 
-import 'package:trading_app/home_screen.dart';
+import 'home_screen.dart';
 
-void main() {
-  final marketBloc = MarketBloc(
-    marketFeed: MockMarketFeed(
-      tickInterval: MarketFeedConfig.normalTickInterval,
-    ),
-  )..add(const StartMarketFeed());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
+  // Create the trading repository.
   final tradingRepository = TradingRepository();
 
-  runApp(
-    TradingApp(marketBloc: marketBloc, tradingRepository: tradingRepository),
-  );
+  // Restore wallet, holdings and orders.
+  await tradingRepository.load();
+
+  runApp(TradingApp(tradingRepository: tradingRepository));
 }
 
 class TradingApp extends StatelessWidget {
-  final MarketBloc marketBloc;
   final TradingRepository tradingRepository;
 
-  const TradingApp({
-    super.key,
-    required this.marketBloc,
-    required this.tradingRepository,
-  });
+  const TradingApp({super.key, required this.tradingRepository});
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider.value(value: marketBloc),
+        BlocProvider(
+          create: (_) => MarketBloc(
+            marketFeed: MockMarketFeed(
+              tickInterval: MarketFeedConfig.normalTickInterval,
+            ),
+          )..add(const StartMarketFeed()),
+        ),
 
         BlocProvider(
           create: (_) =>
@@ -52,8 +51,10 @@ class TradingApp extends StatelessWidget {
         ),
 
         BlocProvider(
-          create: (_) =>
-              OrderBloc(repository: tradingRepository, marketBloc: marketBloc),
+          create: (context) => OrderBloc(
+            repository: tradingRepository,
+            marketBloc: context.read<MarketBloc>(),
+          ),
         ),
       ],
       child: MaterialApp(
